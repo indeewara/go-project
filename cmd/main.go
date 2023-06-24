@@ -1,24 +1,16 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+
+	"github.com/yourusername/project/handlers" // Update with your package path
 )
 
 func main() {
-	client := http.Client{}
-	request, err := http.NewRequest("GET", "https://api.exchangerate.host/latest", nil)
-	if err != nil {
-		fmt.Println(err)
-	}
+	http.HandleFunc("/convert", handlers.ConvertHandler)
 
-	resp, err := client.Do(request)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	var result map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&result)
-	fmt.Println(result)
+	fmt.Println("Server listening on port 8080...")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
