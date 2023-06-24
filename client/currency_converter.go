@@ -11,33 +11,54 @@ import (
 )
 
 func main() {
-	// Create the request payload
-	request := models.ConversionRequest{
-		FromCurrency: "USD",
-		Amount:       234.0,
-		ToCurrency:   "LKR",
-	}
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "client/index.html")
+	})
 
-	// Convert the request payload to JSON
-	payload, err := json.Marshal(request)
-	if err != nil {
-		log.Fatal(err)
-	}
+	http.HandleFunc("/convert", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			decoder := json.NewDecoder(r.Body)
+			var request models.ConversionRequest
+			err := decoder.Decode(&request)
+			if err != nil {
+				http.Error(w, "Invalid request", http.StatusBadRequest)
+				return
+			}
+			convertedRequest := models.ConversionRequest{
+				FromCurrency: request.FromCurrency,
+				Amount:       request.Amount,
+				ToCurrency:   request.ToCurrency,
+			}
 
-	// Make a POST request to the /convert endpoint
-	resp, err := http.Post("http://localhost:8080/convert", "application/json", bytes.NewBuffer(payload))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
+			payload, err := json.Marshal(convertedRequest)
+			if err != nil {
+				http.Error(w, "Failed to encode request", http.StatusInternalServerError)
+				return
+			}
+			resp, err := http.Post("http://localhost:8080/convert", "application/json", bytes.NewBuffer(payload))
+			if err != nil {
+				http.Error(w, "Failed to send request to server", http.StatusInternalServerError)
+				return
+			}
 
-	// Decode the response
-	var response models.ConversionResponse
-	err = json.NewDecoder(resp.Body).Decode(&response)
-	if err != nil {
-		log.Fatal(err)
-	}
+			defer resp.Body.Close()
+			var response models.ConversionResponse
+			err = json.NewDecoder(resp.Body).Decode(&response)
+			if err != nil {
+				http.Error(w, "Failed to decode response", http.StatusInternalServerError)
+				return
+			}
+			jsonResponse, err := json.Marshal(response)
+			if err != nil {
+				http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+				return
+			}
 
-	// Print the converted amount
-	fmt.Println("Converted Amount:", response.Amount, response.Currency)
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(jsonResponse)
+		}
+	})
+
+	fmt.Println("Server listening on port 8000...")
+	log.Fatal(http.ListenAndServe(":8000", nil))
 }

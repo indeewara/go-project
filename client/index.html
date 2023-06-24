@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+
+    <title>Currency Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #conversionForm {
+            max-width: 300px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f2f2f2;
+            border-radius: 3px;
+        }    </style>
+</head>
+<body>
+    <h1>Currency Converter</h1>
+
+    <form id="conversionForm">
+        <label for="fromCurrency">From Currency:</label>
+        <input type="text" id="fromCurrency" name="fromCurrency" required>
+
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" name="amount" required>
+
+        <label for="toCurrency">To Currency:</label>
+        <input type="text" id="toCurrency" name="toCurrency" required>
+
+        <button type="button" id="convertButton" onclick="handleFormSubmission()">Convert</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        function handleFormSubmission() { 
+            var fromCurrency = document.getElementById("fromCurrency").value;
+            var amount = document.getElementById("amount").value;
+            var toCurrency = document.getElementById("toCurrency").value;
+
+            var request = {
+                fromCurrency: fromCurrency,
+                amount: parseFloat(amount),
+                toCurrency: toCurrency
+            };
+
+
+            fetch("/convert", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(request)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                var result = document.getElementById("result");
+                result.innerHTML = "Amount: " + data.amount + "<br>Currency: " + data.currency;
+            
+            })
+            .catch(error => {
+                console.log("Error:", error);
+                var result = document.getElementById("result");
+                result.innerHTML = "An error occurred.";
+            });
+            convertButton.removeEventListener("click", handleFormSubmission);
+        }
+
+        convertButton.addEventListener("click", handleFormSubmission);
+    </script>
+</body>
+</html>
