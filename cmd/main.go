@@ -1,16 +1,11 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"net/http"
-
-	"github.com/yourusername/project/handlers" // Update with your package path
+	"github.com/go-project/internal/services"
+	// Update with your package path
 )
 
 func main() {
-	http.HandleFunc("/convert", handlers.ConvertHandler)
+	services.RunService()
 
-	fmt.Println("Server listening on port 8080...")
-	log.Fatal(http.ListenAndServe(":8080", nil))
 }

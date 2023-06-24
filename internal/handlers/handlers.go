@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/yourusername/project/models" // Update with your package path
+	"github.com/go-project/internal/models" // Update with your package path
 )
 
 func ConvertHandler(w http.ResponseWriter, r *http.Request) {
@@ -17,7 +17,6 @@ func ConvertHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Make a GET request to fetch the latest exchange rates
 	client := http.Client{}
 	resp, err := client.Get("https://api.exchangerate.host/latest")
 	if err != nil {
@@ -32,10 +31,10 @@ func ConvertHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fromRate := rates["rates"].(map[string]interface{})[request.FromCurrency].(float64)
-	toRate := rates["rates"].(map[string]interface{})[request.ToCurrency].(float64)
+	FromCurrencyRate := rates["rates"].(map[string]interface{})[request.FromCurrency].(float64)
+	ToCurrencyRate := rates["rates"].(map[string]interface{})[request.ToCurrency].(float64)
 
-	convertedAmount := request.Amount * (toRate / fromRate)
+	convertedAmount := request.Amount * (ToCurrencyRate / FromCurrencyRate)
 
 	response := models.ConversionResponse{
 		Amount:   convertedAmount,

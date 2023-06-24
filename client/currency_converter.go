@@ -6,22 +6,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/go-project/internal/models"
 )
-
-type ConversionRequest struct {
-	FromCurrency string  `json:"fromCurrency"`
-	Amount       float64 `json:"amount"`
-	ToCurrency   string  `json:"toCurrency"`
-}
-
-type ConversionResponse struct {
-	Amount   float64 `json:"amount"`
-	Currency string  `json:"currency"`
-}
 
 func main() {
 	// Create the request payload
-	request := ConversionRequest{
+	request := models.ConversionRequest{
 		FromCurrency: "USD",
 		Amount:       234.0,
 		ToCurrency:   "LKR",
@@ -41,7 +32,7 @@ func main() {
 	defer resp.Body.Close()
 
 	// Decode the response
-	var response ConversionResponse
+	var response models.ConversionResponse
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
 		log.Fatal(err)
