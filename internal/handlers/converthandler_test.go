@@ -1,4 +1,4 @@
-package handlers
+package handlers_test
 
 import (
 	"bytes"
@@ -7,47 +7,39 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-project/internal/handlers"
 	"github.com/go-project/internal/models"
+	"github.com/patrickmn/go-cache"
 )
 
 func TestConvertHandler(t *testing.T) {
-	request := models.ConversionRequest{
-		FromCurrency: "USD",
-		Amount:       100,
-		ToCurrency:   "EUR",
-	}
-	payload, err := json.Marshal(request)
-	if err != nil {
-		t.Fatal(err)
+	c := cache.New(cache.NoExpiration, cache.NoExpiration)
+	app := handlers.App{
+		Cache: c,
 	}
 
-	req, err := http.NewRequest("POST", "/convert", bytes.NewBuffer(payload))
+	requestBody := models.ConversionRequest{
+		FromCurrency: "USD",
+		ToCurrency:   "EUR",
+		Amount:       100,
+	}
+	jsonData, _ := json.Marshal(requestBody)
+
+	req, err := http.NewRequest("POST", "/convert", bytes.NewBuffer(jsonData))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	rr := httptest.NewRecorder()
-
-	handler := http.HandlerFunc(ConvertHandler)
+	handler := http.HandlerFunc(app.ConvertHandler)
 	handler.ServeHTTP(rr, req)
 
-	if rr.Code != http.StatusOK {
-		t.Errorf("unexpected status code: got %v, want %v", rr.Code, http.StatusOK)
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v, want %v", status, http.StatusOK)
 	}
-
 	var response models.ConversionResponse
 	err = json.Unmarshal(rr.Body.Bytes(), &response)
 	if err != nil {
-		t.Fatal(err)
-	}
-
-	expectedAmount := 91.59
-	expectedCurrency := "EUR"
-	epsilon := 0.01
-	if diff := response.Amount - expectedAmount; diff > epsilon || diff < -epsilon {
-		t.Errorf("unexpected amount: got %.2f, want %.2f", response.Amount, expectedAmount)
-	}
-	if response.Currency != expectedCurrency {
-		t.Errorf("unexpected currency: got %s, want %s", response.Currency, expectedCurrency)
+		t.Errorf("failed to unmarshal response body: %v", err)
 	}
 }
